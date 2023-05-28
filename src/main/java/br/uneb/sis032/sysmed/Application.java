@@ -23,12 +23,36 @@ public class Application {
 
     //TODO fix validation loops and navigation
     //TODO stylize console prompts
+    //TODO extract as a client (distributed system)
     public static void main(String[] args) {
         final Scanner scanner = new Scanner(System.in);
         final DataRepository repository = DataRepository.getInstance();
         final AppointmentBookingFacade bookingFacade = new AppointmentBookingFacade(repository);
 
         final Clinic clinic = setupApplication(repository, scanner);
+
+        // Main Loop
+        while (true) {
+            displayMenu();
+            final int selectedMenuOption = scanner.nextInt();
+            scanner.nextLine(); // Consume the newline character
+            if (selectedMenuOption == 2) {
+                displayBookingForm(scanner, bookingFacade, clinic);
+            }
+        }
+    }
+
+    private static void displayMenu() {
+        jumpStandardOutput();
+        System.out.println("========== Menu ==========");
+        System.out.println("1. Consultar agendamento");
+        System.out.println("2. Criar novo agendamento");
+        System.out.println("==========================");
+        System.out.print("Escolha uma opção: ");
+    }
+
+    private static void displayBookingForm(Scanner scanner, AppointmentBookingFacade bookingFacade, Clinic clinic) {
+        jumpStandardOutput();
         final Patient patient = promptForPatient(scanner);
         final HealthInsurance insurance = promptForInsurance(clinic, scanner);
         final Procedure procedure = promptForProcedure(clinic, scanner);
@@ -38,23 +62,32 @@ public class Application {
             final Payment futurePayment = bookingFacade.book(appointment, insurance);
 
             if (futurePayment.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
-                System.out.println("Valor total: " + futurePayment.getTotalAmount());
-                System.out.println("Selecione um método de pagamento: \n1. Dinheiro\n2. Cartão");
-                final int selectedPaymentMethod = scanner.nextInt();
-                futurePayment.setMethod(selectedPaymentMethod == 1 ? PaymentMethod.CASH : PaymentMethod.CREDIT_CARD);
+                final PaymentMethod paymentMethod = promptForPaymentMethod(futurePayment, scanner);
+                futurePayment.setMethod(paymentMethod);
                 futurePayment.setStatus(PaymentStatus.PAID);
             } else {
                 System.out.println("Procedimento coberto pelo plano.");
             }
             System.out.println("Agendamento realizado com sucesso.");
+            System.out.print("Digite qualquer tecla para voltar ao menu...");
+            scanner.nextLine();
         } catch (TimeSlotUnavailableException e) {
             System.out.println("Desculpe, o atendimento não pode ser confirmado.");
-            System.exit(0);
         }
     }
 
+    private static PaymentMethod promptForPaymentMethod(Payment futurePayment, Scanner scanner) {
+        System.out.println("Valor total: " + futurePayment.getTotalAmount());
+        System.out.println("Métodos de pagamento disponíveis: \n1. Dinheiro\n2. Cartão");
+        System.out.println("Selecione uma opção");
+        final int selectedPaymentMethod = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
+
+        return selectedPaymentMethod == 1 ? PaymentMethod.CASH : PaymentMethod.CREDIT_CARD;
+    }
+
     private static Appointment promptForAppointment(AppointmentBookingFacade bookingFacade, Patient patient, Procedure procedure, Scanner scanner) {
-        System.out.println("Selecione um horário disponível para agendamento:");
+        System.out.println("Horários disponíveis para agendamento:");
         final List<Pair<Doctor, LocalDateTime>> schedulingOptions = new ArrayList<>();
         final List<Doctor> doctors = bookingFacade.calculateAvailability(procedure);
 
@@ -66,7 +99,9 @@ public class Application {
                             System.out.println((count.getAndIncrement()) + ". " + doctor.getName() + " - " + day.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " às " + slot.getStartTime());
                         })));
 
+        System.out.print("Selecione uma opção: ");
         final int selectedDate = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
         final Doctor doctor = schedulingOptions.get(selectedDate - 1).getValue0();
         final LocalDateTime appointmentDate = schedulingOptions.get(selectedDate - 1).getValue1();
 
@@ -75,13 +110,15 @@ public class Application {
     }
 
     private static Procedure promptForProcedure(Clinic clinic, Scanner scanner) {
-        System.out.println("Selecione um procedimento: ");
+        System.out.println("Procedimentos disponíveis: ");
         final List<Procedure> procedures = clinic.getProcedurePriceTable().keySet().stream().toList();
         for (int i = 0; i < procedures.size(); i++) {
             Procedure p = procedures.get(i);
             System.out.println((i + 1) + ". " + p.getName());
         }
+        System.out.print("Selecione uma opção: ");
         int selectedProcedure = scanner.nextInt() - 1;
+        scanner.nextLine(); // Consume the newline character
 
         jumpStandardOutput();
         return procedures.get(selectedProcedure);
@@ -89,15 +126,17 @@ public class Application {
 
     private static HealthInsurance promptForInsurance(Clinic clinic, Scanner scanner) {
         // Prompt for insurance and procedure information
-        System.out.println("Selecione um plano de saúde: ");
-        System.out.println("0. Sem plano (Atendimento particular)");
+        System.out.println("Plano de saúde atendidos: ");
 
         List<HealthInsurance> acceptedHealthInsurances = clinic.getAcceptedHealthInsurances();
         for (int i = 0; i < acceptedHealthInsurances.size(); i++) {
             HealthInsurance hi = acceptedHealthInsurances.get(i);
             System.out.println((i + 1) + ". " + hi.getName());
         }
+        System.out.print("Selecione uma opção, ou digite 0 para atendimento particular: ");
         int selectedInsurance = scanner.nextInt() - 1;
+        scanner.nextLine(); // Consume the newline character
+
         HealthInsurance insurance = null;
 
         if (selectedInsurance >= 0) {
@@ -110,30 +149,30 @@ public class Application {
 
     private static Patient promptForPatient(Scanner scanner) {
         // Prompt for basic patient information
-        System.out.println("Nome do paciente: ");
+        System.out.print("Nome do paciente: ");
         final String name = scanner.nextLine();
 
-        System.out.println("Documento de identificação: ");
+        System.out.print("Documento de identificação: ");
         final String id = scanner.nextLine();
 
-        System.out.println("CPF: ");
+        System.out.print("CPF: ");
         final String cpf = scanner.nextLine();
 
-        System.out.println("Data de Nascimento (formato: dd/mm/yyyy): ");
+        System.out.print("Data de Nascimento (formato: dd/mm/yyyy): ");
         final String birthday = scanner.nextLine();
         LocalDate birthDate = LocalDate.parse(birthday, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
-        System.out.println("Sexo (H/M): ");
+        System.out.print("Sexo (H/M): ");
         final String gender = scanner.nextLine();
 
         final Patient patient = new Patient(name, id, cpf, birthDate, GenderEnum.of(gender));
 
         // Check if the patient is a minor and prompt for additional information
         if (patient.isMinor()) {
-            System.out.println("Nome da mãe/responsável: ");
+            System.out.print("Nome da mãe/responsável: ");
             final String responsiblePartyName = scanner.nextLine();
 
-            System.out.println("Documento de identificação do responsável: ");
+            System.out.print("Documento de identificação do responsável: ");
             final String responsiblePartyId = scanner.nextLine();
 
             final ResponsibleParty responsibleParty = new ResponsibleParty(responsiblePartyName, responsiblePartyId);
