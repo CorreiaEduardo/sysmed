@@ -6,6 +6,7 @@ import br.uneb.sis032.sysmed.memorydb.DataRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public class AppointmentBookingFacade {
 
@@ -20,6 +21,14 @@ public class AppointmentBookingFacade {
                 .getDoctors()
                 .stream()
                 .filter(doctor -> doctor.does(procedure))
+                .toList();
+    }
+
+    public List<Appointment> search(String patientCPF) {
+        return dataRepository
+                .getAppointments()
+                .stream()
+                .filter(ap -> ap.getDate().isAfter(LocalDateTime.now()) && ap.getPatient().getCpf().equals(patientCPF))
                 .toList();
     }
 

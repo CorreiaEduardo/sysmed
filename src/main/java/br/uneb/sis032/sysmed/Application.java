@@ -33,22 +33,40 @@ public class Application {
 
         // Main Loop
         while (true) {
-            displayMenu();
-            final int selectedMenuOption = scanner.nextInt();
-            scanner.nextLine(); // Consume the newline character
-            if (selectedMenuOption == 2) {
-                displayBookingForm(scanner, bookingFacade, clinic);
+            final int selectedMenuOption = promptForMenuOption(scanner);
+            switch (selectedMenuOption) {
+                case 1 -> displayAppointmentSearch(scanner, bookingFacade);
+                case 2 -> displayBookingForm(scanner, bookingFacade, clinic);
+                case 3 -> System.exit(1);
             }
         }
     }
 
-    private static void displayMenu() {
+    private static void displayAppointmentSearch(Scanner scanner, AppointmentBookingFacade bookingFacade) {
+        jumpStandardOutput();
+
+        System.out.print("CPF do paciente: ");
+        final String cpf = scanner.nextLine();
+
+        final List<Appointment> appointments = bookingFacade.search(cpf);
+
+        appointments.forEach(appointment -> {
+            System.out.println("-> (" + appointment.getDoctor().getSpecialty().getName() + ") " + appointment.getDoctor().getName() + " - " + appointment.getDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " às " + appointment.getDate().toLocalTime());
+        });
+
+        pauseConsole(scanner);
+    }
+
+    private static int promptForMenuOption(Scanner scanner) {
         jumpStandardOutput();
         System.out.println("========== Menu ==========");
         System.out.println("1. Consultar agendamento");
         System.out.println("2. Criar novo agendamento");
+        System.out.println("3. Sair");
         System.out.println("==========================");
         System.out.print("Escolha uma opção: ");
+
+        return nextInt(scanner);
     }
 
     private static void displayBookingForm(Scanner scanner, AppointmentBookingFacade bookingFacade, Clinic clinic) {
@@ -69,8 +87,7 @@ public class Application {
                 System.out.println("Procedimento coberto pelo plano.");
             }
             System.out.println("Agendamento realizado com sucesso.");
-            System.out.print("Digite qualquer tecla para voltar ao menu...");
-            scanner.nextLine();
+            pauseConsole(scanner);
         } catch (TimeSlotUnavailableException e) {
             System.out.println("Desculpe, o atendimento não pode ser confirmado.");
         }
@@ -80,8 +97,7 @@ public class Application {
         System.out.println("Valor total: " + futurePayment.getTotalAmount());
         System.out.println("Métodos de pagamento disponíveis: \n1. Dinheiro\n2. Cartão");
         System.out.println("Selecione uma opção");
-        final int selectedPaymentMethod = scanner.nextInt();
-        scanner.nextLine(); // Consume the newline character
+        final int selectedPaymentMethod = nextInt(scanner);
 
         return selectedPaymentMethod == 1 ? PaymentMethod.CASH : PaymentMethod.CREDIT_CARD;
     }
@@ -100,8 +116,7 @@ public class Application {
                         })));
 
         System.out.print("Selecione uma opção: ");
-        final int selectedDate = scanner.nextInt();
-        scanner.nextLine(); // Consume the newline character
+        final int selectedDate = nextInt(scanner);
         final Doctor doctor = schedulingOptions.get(selectedDate - 1).getValue0();
         final LocalDateTime appointmentDate = schedulingOptions.get(selectedDate - 1).getValue1();
 
@@ -117,8 +132,7 @@ public class Application {
             System.out.println((i + 1) + ". " + p.getName());
         }
         System.out.print("Selecione uma opção: ");
-        int selectedProcedure = scanner.nextInt() - 1;
-        scanner.nextLine(); // Consume the newline character
+        int selectedProcedure = nextInt(scanner) - 1;
 
         jumpStandardOutput();
         return procedures.get(selectedProcedure);
@@ -134,8 +148,7 @@ public class Application {
             System.out.println((i + 1) + ". " + hi.getName());
         }
         System.out.print("Selecione uma opção, ou digite 0 para atendimento particular: ");
-        int selectedInsurance = scanner.nextInt() - 1;
-        scanner.nextLine(); // Consume the newline character
+        int selectedInsurance = nextInt(scanner) - 1;
 
         HealthInsurance insurance = null;
 
@@ -201,5 +214,17 @@ public class Application {
 
     private static void jumpStandardOutput() {
         System.out.println(System.lineSeparator().repeat(50));
+    }
+
+    private static int nextInt(Scanner scanner) {
+        final int nextInt = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
+
+        return nextInt;
+    }
+
+    private static void pauseConsole(Scanner scanner) {
+        System.out.print("Digite qualquer tecla para continuar...");
+        scanner.nextLine();
     }
 }

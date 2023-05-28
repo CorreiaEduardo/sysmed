@@ -176,17 +176,17 @@ public class DataRepository {
         oliviaSmithSchedule.put(LocalDate.of(2023, 6, 28), oliviaSmithTimeSlots);
 
         Doctor johnDoe = new Doctor("Dr. John Doe", pediatria, room1, johnDoeSchedule);
-        Doctor oliviaSmith = new Doctor("Dr. Olivia Smith", dermatologia, room2, oliviaSmithSchedule);
+        Doctor oliviaSmith = new Doctor("Dra. Olivia Smith", dermatologia, room2, oliviaSmithSchedule);
 
         doctors.add(johnDoe);
         doctors.add(oliviaSmith);
 
         // Appointments
         Appointment appointment1 = new Appointment(aliceJohnson, johnDoe, consultaPediatria,
-                LocalDateTime.of(2023, 5, 25, 9, 0), LocalDateTime.of(2023, 5, 24, 16, 30));
+                LocalDateTime.of(2023, 7, 25, 9, 0), LocalDateTime.of(2023, 5, 24, 16, 30));
 
         Appointment appointment2 = new Appointment(aliceJohnson, oliviaSmith, consultaDermatologia,
-                LocalDateTime.of(2023, 5, 26, 13, 0), LocalDateTime.of(2023, 5, 25, 14, 45));
+                LocalDateTime.of(2023, 7, 26, 13, 0), LocalDateTime.of(2023, 5, 25, 14, 45));
 
         appointments.add(appointment1);
         appointments.add(appointment2);
