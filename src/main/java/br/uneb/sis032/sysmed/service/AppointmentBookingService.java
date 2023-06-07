@@ -3,17 +3,19 @@ package br.uneb.sis032.sysmed.service;
 import br.uneb.sis032.sysmed.domain.exception.TimeSlotUnavailableException;
 import br.uneb.sis032.sysmed.domain.model.*;
 import br.uneb.sis032.sysmed.memorydb.DataRepository;
+import br.uneb.sis032.sysmed.service.facade.BookingFacade;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
-public class AppointmentBookingFacade {
+public class AppointmentBookingService {
 
     private final DataRepository dataRepository;
+    private final BookingFacade bookingFacade;
 
-    public AppointmentBookingFacade(DataRepository dataRepository) {
+    public AppointmentBookingService(DataRepository dataRepository, BookingFacade bookingFacade) {
         this.dataRepository = dataRepository;
+        this.bookingFacade = bookingFacade;
     }
 
     public List<Doctor> calculateAvailability(Procedure procedure) {
@@ -32,26 +34,8 @@ public class AppointmentBookingFacade {
                 .toList();
     }
 
-    public Payment book(Appointment appointment) throws TimeSlotUnavailableException {
-        return this.book(appointment, null);
-    }
-
     public synchronized Payment book(Appointment appointment, HealthInsurance optionalHealthInsurance) throws TimeSlotUnavailableException {
-        final Doctor doctor = appointment.getDoctor();
-        final List<TimeSlot> doctorSchedule = doctor.getScheduleFor(appointment.getDate().toLocalDate());
-        final Payment futurePayment = new Payment(appointment);
-        final TimeSlot selectedSlot = doctor
-                .selectTimeSlot(appointment.getDate())
-                .orElseThrow(() -> new TimeSlotUnavailableException(doctorSchedule));
-
-        futurePayment.calculateTotal(optionalHealthInsurance);
-        doctorSchedule.remove(selectedSlot);
-        appointment.setScheduledAt(LocalDateTime.now());
-
-        dataRepository.add(futurePayment);
-        dataRepository.add(appointment);
-
-        return futurePayment;
+        return bookingFacade.book(appointment, optionalHealthInsurance);
     }
 
 }

@@ -6,7 +6,8 @@ import br.uneb.sis032.sysmed.domain.model.enums.GenderEnum;
 import br.uneb.sis032.sysmed.domain.model.enums.PaymentMethod;
 import br.uneb.sis032.sysmed.domain.model.enums.PaymentStatus;
 import br.uneb.sis032.sysmed.memorydb.DataRepository;
-import br.uneb.sis032.sysmed.service.AppointmentBookingFacade;
+import br.uneb.sis032.sysmed.service.AppointmentBookingService;
+import br.uneb.sis032.sysmed.service.facade.BookingFacadeImpl;
 import org.javatuples.Pair;
 
 import java.math.BigDecimal;
@@ -22,12 +23,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Application {
 
     //TODO fix validation loops and navigation
-    //TODO stylize console prompts
-    //TODO extract as a client (distributed system)
     public static void main(String[] args) {
         final Scanner scanner = new Scanner(System.in);
         final DataRepository repository = DataRepository.getInstance();
-        final AppointmentBookingFacade bookingFacade = new AppointmentBookingFacade(repository);
+        final BookingFacadeImpl bookingFacade = new BookingFacadeImpl(repository);
+        final AppointmentBookingService bookingService = new AppointmentBookingService(repository, bookingFacade);
 
         final Clinic clinic = setupApplication(repository, scanner);
 
@@ -35,14 +35,15 @@ public class Application {
         while (true) {
             final int selectedMenuOption = promptForMenuOption(scanner);
             switch (selectedMenuOption) {
-                case 1 -> displayAppointmentSearch(scanner, bookingFacade);
-                case 2 -> displayBookingForm(scanner, bookingFacade, clinic);
+                case 1 -> displayAppointmentSearch(scanner, bookingService);
+                case 2 -> displayBookingForm(scanner, bookingService, clinic);
                 case 3 -> System.exit(1);
             }
         }
     }
 
-    private static void displayAppointmentSearch(Scanner scanner, AppointmentBookingFacade bookingFacade) {
+    //TODO, tratar quando não há agendamentos feitos
+    private static void displayAppointmentSearch(Scanner scanner, AppointmentBookingService bookingFacade) {
         jumpStandardOutput();
 
         System.out.print("CPF do paciente: ");
@@ -69,11 +70,16 @@ public class Application {
         return nextInt(scanner);
     }
 
-    private static void displayBookingForm(Scanner scanner, AppointmentBookingFacade bookingFacade, Clinic clinic) {
+    private static void displayBookingForm(Scanner scanner, AppointmentBookingService bookingFacade, Clinic clinic) {
         jumpStandardOutput();
         final Patient patient = promptForPatient(scanner);
         final HealthInsurance insurance = promptForInsurance(clinic, scanner);
         final Procedure procedure = promptForProcedure(clinic, scanner);
+
+        if (insurance != null && !insurance.covers(procedure)) {
+            promptToProceedWithoutCoverage(scanner);
+        }
+
         final Appointment appointment = promptForAppointment(bookingFacade, patient, procedure, scanner);
 
         try {
@@ -96,13 +102,14 @@ public class Application {
     private static PaymentMethod promptForPaymentMethod(Payment futurePayment, Scanner scanner) {
         System.out.println("Valor total: " + futurePayment.getTotalAmount());
         System.out.println("Métodos de pagamento disponíveis: \n1. Dinheiro\n2. Cartão");
-        System.out.println("Selecione uma opção");
+        System.out.print("Selecione uma opção: ");
         final int selectedPaymentMethod = nextInt(scanner);
 
         return selectedPaymentMethod == 1 ? PaymentMethod.CASH : PaymentMethod.CREDIT_CARD;
     }
 
-    private static Appointment promptForAppointment(AppointmentBookingFacade bookingFacade, Patient patient, Procedure procedure, Scanner scanner) {
+    //TODO, tratar quando não há horário disponível
+    private static Appointment promptForAppointment(AppointmentBookingService bookingFacade, Patient patient, Procedure procedure, Scanner scanner) {
         System.out.println("Horários disponíveis para agendamento:");
         final List<Pair<Doctor, LocalDateTime>> schedulingOptions = new ArrayList<>();
         final List<Doctor> doctors = bookingFacade.calculateAvailability(procedure);
@@ -122,6 +129,20 @@ public class Application {
 
         jumpStandardOutput();
         return new Appointment(patient, doctor, procedure, appointmentDate);
+    }
+
+    private static void promptToProceedWithoutCoverage(Scanner scanner) {
+        System.out.println("Procedimento não é coberto pelo plano, deseja prosseguir com o agendamento?");
+        System.out.println("1. Prosseguir");
+        System.out.println("2. Cancelar");
+        System.out.print("Selecione uma opção: ");
+        final int proceed = nextInt(scanner);
+
+        if (proceed == 1) {
+            return;
+        }
+
+        System.exit(1);
     }
 
     private static Procedure promptForProcedure(Clinic clinic, Scanner scanner) {
@@ -160,6 +181,7 @@ public class Application {
         return insurance;
     }
 
+    //TODO, tratar quando CPF já existir, apenas confirmar dados
     private static Patient promptForPatient(Scanner scanner) {
         // Prompt for basic patient information
         System.out.print("Nome do paciente: ");

@@ -129,7 +129,7 @@ public class DataRepository {
         Map<Procedure, Boolean> unimedCoveredProcedureTable = new HashMap<>();
         unimedCoveredProcedureTable.put(consultaPediatria, true);
         unimedCoveredProcedureTable.put(consultaDermatologia, false);
-        HealthInsurance unimed = new HealthInsurance("Unimed", unimedCoveredProcedureTable, 10.0);
+        HealthInsurance unimed = new HealthInsurance("Unimed", unimedCoveredProcedureTable, 0.1);
 
         healthInsurances.add(bradesco);
         healthInsurances.add(unimed);
