@@ -16,7 +16,6 @@ public class Patient extends IdentifiableEntity {
     private final String cpf;
     private final LocalDate birthDay;
     private final GenderEnum gender;
-    private ResponsibleParty responsibleParty;
 
     public Patient(String name, String idDocument, String cpf, LocalDate birthDay, GenderEnum gender) {
         this.name = name;
@@ -24,16 +23,6 @@ public class Patient extends IdentifiableEntity {
         this.cpf = cpf;
         this.birthDay = birthDay;
         this.gender = gender;
-    }
-
-    public Patient(String name, String idDocument, String cpf, LocalDate birthDay, GenderEnum gender, ResponsibleParty responsibleParty) {
-        super();
-        this.name = name;
-        this.idDocument = idDocument;
-        this.cpf = cpf;
-        this.birthDay = birthDay;
-        this.gender = gender;
-        this.responsibleParty = responsibleParty;
     }
 
     public boolean isMinor() {

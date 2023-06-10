@@ -36,7 +36,7 @@ public class Application {
             final int selectedMenuOption = promptForMenuOption(scanner);
             switch (selectedMenuOption) {
                 case 1 -> displayAppointmentSearch(scanner, bookingService);
-                case 2 -> displayBookingForm(scanner, bookingService, clinic);
+                case 2 -> displayBookingForm(bookingService, clinic, repository, scanner);
                 case 3 -> System.exit(1);
             }
         }
@@ -70,28 +70,19 @@ public class Application {
         pauseConsole(scanner);
     }
 
-    private static void displayBookingForm(Scanner scanner, AppointmentBookingService bookingFacade, Clinic clinic) {
+    private static void displayBookingForm(AppointmentBookingService bookingFacade, Clinic clinic, DataRepository repository, Scanner scanner) {
         jumpStandardOutput();
-        final Patient patient = promptForPatient(scanner);
+        ResponsibleParty responsibleParty = null;
+        final Patient patient = promptForPatient(repository, scanner);
+        // Check if the patient is a minor and prompt for additional information
+        if (patient.isMinor()) {
+            responsibleParty = promptForResponsibleParty(scanner);
+        }
+
         final HealthInsurance insurance = promptForInsurance(clinic, scanner);
 
-        Appointment appointment;
-        do {
-            final Procedure procedure = promptForProcedure(clinic, scanner);
-
-            if (insurance != null && !insurance.covers(procedure)) {
-                promptToProceedWithoutCoverage(scanner);
-            }
-
-            appointment = promptForAppointment(bookingFacade, patient, procedure, scanner);
-
-            if (appointment == null) {
-                final boolean shouldContinue = prompToContinueWithOtherProcedure(scanner);
-                if (!shouldContinue) {
-                    return;
-                }
-            }
-        } while (appointment == null);
+        Appointment appointment = promptForAppointment(scanner, bookingFacade, clinic, patient, responsibleParty, insurance);
+        if (appointment == null) return;
 
         try {
             final Payment futurePayment = bookingFacade.book(appointment, insurance);
@@ -119,7 +110,29 @@ public class Application {
         return selectedPaymentMethod == 1 ? PaymentMethod.CASH : PaymentMethod.CREDIT_CARD;
     }
 
-    private static Appointment promptForAppointment(AppointmentBookingService bookingFacade, Patient patient, Procedure procedure, Scanner scanner) {
+    private static Appointment promptForAppointment(Scanner scanner, AppointmentBookingService bookingFacade, Clinic clinic, Patient patient, ResponsibleParty responsibleParty, HealthInsurance insurance) {
+        Appointment appointment;
+        do {
+            final Procedure procedure = promptForProcedure(clinic, scanner);
+
+            if (insurance != null && !insurance.covers(procedure)) {
+                promptToProceedWithoutCoverage(scanner);
+            }
+
+            appointment = promptForAppointment(bookingFacade, patient, responsibleParty, procedure, scanner);
+
+            if (appointment == null) {
+                final boolean shouldContinue = prompToContinueWithOtherProcedure(scanner);
+                if (!shouldContinue) {
+                    return null;
+                }
+            }
+        } while (appointment == null);
+
+        return appointment;
+    }
+
+    private static Appointment promptForAppointment(AppointmentBookingService bookingFacade, Patient patient, ResponsibleParty responsibleParty, Procedure procedure, Scanner scanner) {
         System.out.println("Horários disponíveis para agendamento:");
         final List<Pair<Doctor, LocalDateTime>> schedulingOptions = new ArrayList<>();
         final List<Doctor> doctors = bookingFacade.calculateAvailability(procedure);
@@ -141,7 +154,7 @@ public class Application {
             final LocalDateTime appointmentDate = schedulingOptions.get(selectedDate - 1).getValue1();
 
             jumpStandardOutput();
-            return new Appointment(patient, doctor, procedure, appointmentDate);
+            return new Appointment(patient, doctor, procedure, appointmentDate, responsibleParty);
         }
     }
 
@@ -206,37 +219,44 @@ public class Application {
         return insurance;
     }
 
-    //TODO, tratar quando CPF já existir, apenas confirmar dados
-    private static Patient promptForPatient(Scanner scanner) {
+    private static ResponsibleParty promptForResponsibleParty(Scanner scanner) {
+        System.out.print("Nome da mãe/responsável: ");
+        final String responsiblePartyName = scanner.nextLine();
+
+        System.out.print("Documento de identificação do responsável: ");
+        final String responsiblePartyId = scanner.nextLine();
+
+        final ResponsibleParty responsibleParty = new ResponsibleParty(responsiblePartyName, responsiblePartyId);
+
+        jumpStandardOutput();
+        return responsibleParty;
+    }
+
+    private static Patient promptForPatient(DataRepository repository, Scanner scanner) {
+        Patient patient;
+
         // Prompt for basic patient information
-        System.out.print("Nome do paciente: ");
-        final String name = scanner.nextLine();
-
-        System.out.print("Documento de identificação: ");
-        final String id = scanner.nextLine();
-
         System.out.print("CPF: ");
         final String cpf = scanner.nextLine();
 
-        System.out.print("Data de Nascimento (formato: dd/mm/yyyy): ");
-        final String birthday = scanner.nextLine();
-        LocalDate birthDate = LocalDate.parse(birthday, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        final Optional<Patient> opPatient = repository.getPatients().stream().filter(it -> it.getCpf().equals(cpf)).findFirst();
+        if (opPatient.isEmpty()) {
+            System.out.print("Nome do paciente: ");
+            final String name = scanner.nextLine();
 
-        System.out.print("Sexo (H/M): ");
-        final String gender = scanner.nextLine();
+            System.out.print("Documento de identificação: ");
+            final String id = scanner.nextLine();
 
-        final Patient patient = new Patient(name, id, cpf, birthDate, GenderEnum.of(gender));
+            System.out.print("Data de Nascimento (formato: dd/mm/yyyy): ");
+            final String birthday = scanner.nextLine();
+            LocalDate birthDate = LocalDate.parse(birthday, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
-        // Check if the patient is a minor and prompt for additional information
-        if (patient.isMinor()) {
-            System.out.print("Nome da mãe/responsável: ");
-            final String responsiblePartyName = scanner.nextLine();
+            System.out.print("Sexo (H/M): ");
+            final String gender = scanner.nextLine();
 
-            System.out.print("Documento de identificação do responsável: ");
-            final String responsiblePartyId = scanner.nextLine();
-
-            final ResponsibleParty responsibleParty = new ResponsibleParty(responsiblePartyName, responsiblePartyId);
-            patient.setResponsibleParty(responsibleParty);
+            patient = new Patient(name, id, cpf, birthDate, GenderEnum.of(gender));
+        } else {
+            patient = opPatient.get();
         }
 
         jumpStandardOutput();

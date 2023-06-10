@@ -155,10 +155,10 @@ public class DataRepository {
         // Patients
         ResponsibleParty janeSmith = new ResponsibleParty("Jane Smith", "987654321");
         Patient johnSmith = new Patient("John Smith", "123456789", "123456789",
-                LocalDate.of(1990, 5, 10), GenderEnum.MALE, janeSmith);
+                LocalDate.of(1990, 5, 10), GenderEnum.MALE);
 
         Patient aliceJohnson = new Patient("Alice Johnson", "987654321", "987654321",
-                LocalDate.of(1985, 8, 20), GenderEnum.FEMALE, null);
+                LocalDate.of(2005, 8, 20), GenderEnum.FEMALE);
 
         patients.add(johnSmith);
         patients.add(aliceJohnson);
@@ -183,10 +183,10 @@ public class DataRepository {
 
         // Appointments
         Appointment appointment1 = new Appointment(aliceJohnson, johnDoe, consultaPediatria,
-                LocalDateTime.of(2023, 7, 25, 9, 0), LocalDateTime.of(2023, 5, 24, 16, 30));
+                LocalDateTime.of(2023, 7, 25, 9, 0), janeSmith, LocalDateTime.of(2023, 5, 24, 16, 30));
 
         Appointment appointment2 = new Appointment(aliceJohnson, oliviaSmith, consultaDermatologia,
-                LocalDateTime.of(2023, 7, 26, 13, 0), LocalDateTime.of(2023, 5, 25, 14, 45));
+                LocalDateTime.of(2023, 7, 26, 13, 0), janeSmith, LocalDateTime.of(2023, 5, 25, 14, 45));
 
         appointments.add(appointment1);
         appointments.add(appointment2);

@@ -13,22 +13,25 @@ public class Appointment extends IdentifiableEntity {
     private final Doctor doctor;
     private final Procedure procedure;
     private final LocalDateTime date;
+    private final ResponsibleParty patientResponsibleParty;
     private LocalDateTime scheduledAt;
 
-    public Appointment(Patient patient, Doctor doctor, Procedure procedure, LocalDateTime date) {
+    public Appointment(Patient patient, Doctor doctor, Procedure procedure, LocalDateTime date, ResponsibleParty patientResponsibleParty) {
         super();
         this.patient = patient;
         this.doctor = doctor;
         this.procedure = procedure;
         this.date = date;
+        this.patientResponsibleParty = patientResponsibleParty;
     }
 
-    public Appointment(Patient patient, Doctor doctor, Procedure procedure, LocalDateTime date, LocalDateTime scheduledAt) {
+    public Appointment(Patient patient, Doctor doctor, Procedure procedure, LocalDateTime date, ResponsibleParty patientResponsibleParty, LocalDateTime scheduledAt) {
         super();
         this.patient = patient;
         this.doctor = doctor;
         this.procedure = procedure;
         this.date = date;
+        this.patientResponsibleParty = patientResponsibleParty;
         this.scheduledAt = scheduledAt;
     }
 }

@@ -34,6 +34,7 @@ public class BookingFacadeImpl implements BookingFacade {
 
         dataRepository.add(futurePayment);
         dataRepository.add(appointment);
+        dataRepository.add(appointment.getPatient());
 
         return futurePayment;
     }
