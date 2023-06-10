@@ -54,7 +54,6 @@ public class Application {
         return nextInt(scanner);
     }
 
-    //TODO, tratar quando não há agendamentos feitos
     private static void displayAppointmentSearch(Scanner scanner, AppointmentBookingService bookingFacade) {
         jumpStandardOutput();
 
@@ -62,6 +61,12 @@ public class Application {
         final String cpf = scanner.nextLine();
 
         final List<Appointment> appointments = bookingFacade.search(cpf);
+
+        if (appointments.isEmpty()) {
+            System.out.println("Nenhum agendamento encontrado para este paciente.");
+            pauseConsole(scanner);
+            return;
+        }
 
         appointments.forEach(appointment -> {
             System.out.println("-> (" + appointment.getDoctor().getSpecialty().getName() + ") " + appointment.getDoctor().getName() + " - " + appointment.getDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " às " + appointment.getDate().toLocalTime());
