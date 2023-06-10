@@ -10,5 +10,10 @@
         <module name="sysmed" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="client" target="17" />
+      <module name="server" target="17" />
+      <module name="sysmed-types" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>

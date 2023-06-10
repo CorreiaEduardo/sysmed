@@ -6,7 +6,6 @@ import br.uneb.sis032.sysmed.domain.model.enums.PaymentStatus;
 import br.uneb.sis032.sysmed.service.strategy.PriceCalculationStrategy;
 import lombok.Getter;
 import lombok.Setter;
-import org.javatuples.Pair;
 
 import java.math.BigDecimal;
 
