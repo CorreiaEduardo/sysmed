@@ -121,14 +121,14 @@ public class DataRepository {
         procedures.add(consultaEndocrinologia);
 
         // Health Insurances
-        Map<Procedure, Boolean> bradescoCoveredProcedureTable = new HashMap<>();
-        bradescoCoveredProcedureTable.put(consultaPediatria, true);
-        bradescoCoveredProcedureTable.put(consultaDermatologia, true);
+        Map<Procedure, BigDecimal> bradescoCoveredProcedureTable = new HashMap<>();
+        bradescoCoveredProcedureTable.put(consultaPediatria, BigDecimal.valueOf(150.0));
+        bradescoCoveredProcedureTable.put(consultaDermatologia, BigDecimal.valueOf(200.0));
         HealthInsurance bradesco = new HealthInsurance("Bradesco", bradescoCoveredProcedureTable, 0.0);
 
-        Map<Procedure, Boolean> unimedCoveredProcedureTable = new HashMap<>();
-        unimedCoveredProcedureTable.put(consultaPediatria, true);
-        unimedCoveredProcedureTable.put(consultaDermatologia, false);
+        Map<Procedure, BigDecimal> unimedCoveredProcedureTable = new HashMap<>();
+        unimedCoveredProcedureTable.put(consultaPediatria, BigDecimal.valueOf(80.0));
+        unimedCoveredProcedureTable.put(consultaDermatologia, BigDecimal.valueOf(80.0));
         HealthInsurance unimed = new HealthInsurance("Unimed", unimedCoveredProcedureTable, 0.1);
 
         healthInsurances.add(bradesco);
