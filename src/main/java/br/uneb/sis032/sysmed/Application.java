@@ -42,6 +42,18 @@ public class Application {
         }
     }
 
+    private static int promptForMenuOption(Scanner scanner) {
+        jumpStandardOutput();
+        System.out.println("========== Menu ==========");
+        System.out.println("1. Consultar agendamento");
+        System.out.println("2. Criar novo agendamento");
+        System.out.println("3. Sair");
+        System.out.println("==========================");
+        System.out.print("Escolha uma opção: ");
+
+        return nextInt(scanner);
+    }
+
     //TODO, tratar quando não há agendamentos feitos
     private static void displayAppointmentSearch(Scanner scanner, AppointmentBookingService bookingFacade) {
         jumpStandardOutput();
@@ -58,29 +70,28 @@ public class Application {
         pauseConsole(scanner);
     }
 
-    private static int promptForMenuOption(Scanner scanner) {
-        jumpStandardOutput();
-        System.out.println("========== Menu ==========");
-        System.out.println("1. Consultar agendamento");
-        System.out.println("2. Criar novo agendamento");
-        System.out.println("3. Sair");
-        System.out.println("==========================");
-        System.out.print("Escolha uma opção: ");
-
-        return nextInt(scanner);
-    }
-
     private static void displayBookingForm(Scanner scanner, AppointmentBookingService bookingFacade, Clinic clinic) {
         jumpStandardOutput();
         final Patient patient = promptForPatient(scanner);
         final HealthInsurance insurance = promptForInsurance(clinic, scanner);
-        final Procedure procedure = promptForProcedure(clinic, scanner);
 
-        if (insurance != null && !insurance.covers(procedure)) {
-            promptToProceedWithoutCoverage(scanner);
-        }
+        Appointment appointment;
+        do {
+            final Procedure procedure = promptForProcedure(clinic, scanner);
 
-        final Appointment appointment = promptForAppointment(bookingFacade, patient, procedure, scanner);
+            if (insurance != null && !insurance.covers(procedure)) {
+                promptToProceedWithoutCoverage(scanner);
+            }
+
+            appointment = promptForAppointment(bookingFacade, patient, procedure, scanner);
+
+            if (appointment == null) {
+                final boolean shouldContinue = prompToContinueWithOtherProcedure(scanner);
+                if (!shouldContinue) {
+                    return;
+                }
+            }
+        } while (appointment == null);
 
         try {
             final Payment futurePayment = bookingFacade.book(appointment, insurance);
@@ -108,7 +119,6 @@ public class Application {
         return selectedPaymentMethod == 1 ? PaymentMethod.CASH : PaymentMethod.CREDIT_CARD;
     }
 
-    //TODO, tratar quando não há horário disponível
     private static Appointment promptForAppointment(AppointmentBookingService bookingFacade, Patient patient, Procedure procedure, Scanner scanner) {
         System.out.println("Horários disponíveis para agendamento:");
         final List<Pair<Doctor, LocalDateTime>> schedulingOptions = new ArrayList<>();
@@ -122,13 +132,28 @@ public class Application {
                             System.out.println((count.getAndIncrement()) + ". " + doctor.getName() + " - " + day.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " às " + slot.getStartTime());
                         })));
 
+        if (schedulingOptions.isEmpty()) {
+            return null;
+        } else {
+            System.out.print("Selecione uma opção: ");
+            final int selectedDate = nextInt(scanner);
+            final Doctor doctor = schedulingOptions.get(selectedDate - 1).getValue0();
+            final LocalDateTime appointmentDate = schedulingOptions.get(selectedDate - 1).getValue1();
+
+            jumpStandardOutput();
+            return new Appointment(patient, doctor, procedure, appointmentDate);
+        }
+    }
+
+    private static boolean prompToContinueWithOtherProcedure(Scanner scanner) {
+        System.out.println("Nenhum horário disponível, você pode tentar novamente mais tarde.");
+        System.out.println("\n1. Tentar outro procedimento\n2. Voltar ao menu");
         System.out.print("Selecione uma opção: ");
-        final int selectedDate = nextInt(scanner);
-        final Doctor doctor = schedulingOptions.get(selectedDate - 1).getValue0();
-        final LocalDateTime appointmentDate = schedulingOptions.get(selectedDate - 1).getValue1();
+        final int selected = nextInt(scanner);
 
         jumpStandardOutput();
-        return new Appointment(patient, doctor, procedure, appointmentDate);
+
+        return selected == 1;
     }
 
     private static void promptToProceedWithoutCoverage(Scanner scanner) {
