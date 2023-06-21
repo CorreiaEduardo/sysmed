@@ -7,6 +7,7 @@ import br.uneb.sis032.sysmed.service.strategy.InsurancePriceCalculationStrategy;
 import br.uneb.sis032.sysmed.service.strategy.NoInsurancePriceCalculationStrategy;
 import br.uneb.sis032.sysmed.service.strategy.PriceCalculationStrategy;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,21 +27,23 @@ public class BookingFacadeImpl implements BookingFacade {
                 .selectTimeSlot(appointment.getDate())
                 .orElseThrow(() -> new TimeSlotUnavailableException(doctorSchedule));
 
-        futurePayment.setPriceCalculationStrategy(selectStrategy(optionalHealthInsurance));
+        futurePayment.setPriceCalculationStrategy(selectStrategy(optionalHealthInsurance, appointment.getProcedure()));
         futurePayment.calculateTotal();
 
         doctorSchedule.remove(selectedSlot);
         appointment.setScheduledAt(LocalDateTime.now());
 
-        dataRepository.add(futurePayment);
+        if (futurePayment.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
+            dataRepository.add(futurePayment);
+        }
         dataRepository.add(appointment);
         dataRepository.add(appointment.getPatient());
 
         return futurePayment;
     }
 
-    private PriceCalculationStrategy selectStrategy(HealthInsurance optionalHealthInsurance) {
-        if (optionalHealthInsurance == null) return new NoInsurancePriceCalculationStrategy();
+    private PriceCalculationStrategy selectStrategy(HealthInsurance optionalHealthInsurance, Procedure p) {
+        if (optionalHealthInsurance == null || !optionalHealthInsurance.covers(p)) return new NoInsurancePriceCalculationStrategy();
 
         return new InsurancePriceCalculationStrategy(optionalHealthInsurance);
     }

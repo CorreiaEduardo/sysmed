@@ -37,9 +37,15 @@ public class Application {
             switch (selectedMenuOption) {
                 case 1 -> displayAppointmentSearch(scanner, bookingService);
                 case 2 -> displayBookingForm(bookingService, clinic, repository, scanner);
-                case 3 -> System.exit(1);
+                case 3 -> exitWithReport(repository);
             }
         }
+    }
+
+    private static void exitWithReport(DataRepository repository) {
+        repository.getAppointments().forEach(System.out::println);
+        repository.getPayments().forEach(System.out::println);
+        System.exit(1);
     }
 
     private static int promptForMenuOption(Scanner scanner) {
@@ -121,7 +127,10 @@ public class Application {
             final Procedure procedure = promptForProcedure(clinic, scanner);
 
             if (insurance != null && !insurance.covers(procedure)) {
-                promptToProceedWithoutCoverage(scanner);
+                final boolean shouldContinue = promptToProceedWithoutCoverage(scanner);
+                if (!shouldContinue) {
+                    return null;
+                }
             }
 
             appointment = promptForAppointment(bookingFacade, patient, responsibleParty, procedure, scanner);
@@ -174,18 +183,14 @@ public class Application {
         return selected == 1;
     }
 
-    private static void promptToProceedWithoutCoverage(Scanner scanner) {
+    private static boolean promptToProceedWithoutCoverage(Scanner scanner) {
         System.out.println("Procedimento não é coberto pelo plano, deseja prosseguir com o agendamento?");
         System.out.println("1. Prosseguir");
         System.out.println("2. Cancelar");
         System.out.print("Selecione uma opção: ");
         final int proceed = nextInt(scanner);
 
-        if (proceed == 1) {
-            return;
-        }
-
-        System.exit(1);
+        return proceed == 1;
     }
 
     private static Procedure promptForProcedure(Clinic clinic, Scanner scanner) {

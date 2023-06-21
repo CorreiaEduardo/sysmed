@@ -25,4 +25,13 @@ public class Procedure extends IdentifiableEntity {
         }
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "Procedure{" +
+                "code='" + code + '\'' +
+                ", name='" + name + '\'' +
+                ", specialty=" + specialty +
+                '}';
+    }
 }

@@ -26,4 +26,13 @@ public class Payment extends IdentifiableEntity {
     public void calculateTotal() {
         this.totalAmount = priceCalculationStrategy.calculate(this.appointment);
     }
+
+    @Override
+    public String toString() {
+        return "Payment{" +
+                "method=" + method +
+                ", totalAmount=" + totalAmount +
+                ", status=" + status +
+                '}';
+    }
 }

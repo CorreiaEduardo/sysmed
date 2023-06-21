@@ -10,4 +10,12 @@ import java.time.LocalTime;
 public class TimeSlot {
     private final LocalTime startTime;
     private final LocalTime endTime;
+
+    @Override
+    public String toString() {
+        return "TimeSlot{" +
+                "startTime=" + startTime +
+                ", endTime=" + endTime +
+                '}';
+    }
 }

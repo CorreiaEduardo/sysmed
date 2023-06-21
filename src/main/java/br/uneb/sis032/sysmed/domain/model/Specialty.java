@@ -22,4 +22,11 @@ public class Specialty extends IdentifiableEntity {
 
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "Specialty{" +
+                "name='" + name + '\'' +
+                '}';
+    }
 }

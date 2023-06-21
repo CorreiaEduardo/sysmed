@@ -30,4 +30,15 @@ public class Patient extends IdentifiableEntity {
         Period ageDifference = Period.between(this.birthDay, currentDate);
         return ageDifference.getYears() < 18;
     }
+
+    @Override
+    public String toString() {
+        return "Patient{" +
+                "name='" + name + '\'' +
+                ", idDocument='" + idDocument + '\'' +
+                ", cpf='" + cpf + '\'' +
+                ", birthDay=" + birthDay +
+                ", gender=" + gender +
+                '}';
+    }
 }

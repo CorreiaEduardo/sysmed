@@ -41,4 +41,14 @@ public class Doctor extends IdentifiableEntity {
                 .filter(it -> it.getStartTime().equals(startsAt.toLocalTime()))
                 .findFirst();
     }
+
+    @Override
+    public String toString() {
+        return "Doctor{" +
+                "name='" + name + '\'' +
+                ", specialty=" + specialty +
+                ", consultationRoom=" + consultationRoom +
+                ", currentSchedule=" + currentSchedule +
+                '}';
+    }
 }

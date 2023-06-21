@@ -10,4 +10,12 @@ import lombok.Setter;
 public class ResponsibleParty {
     private final String name;
     private final String idDocument;
+
+    @Override
+    public String toString() {
+        return "ResponsibleParty{" +
+                "name='" + name + '\'' +
+                ", idDocument='" + idDocument + '\'' +
+                '}';
+    }
 }

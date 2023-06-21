@@ -34,4 +34,16 @@ public class Appointment extends IdentifiableEntity {
         this.patientResponsibleParty = patientResponsibleParty;
         this.scheduledAt = scheduledAt;
     }
+
+    @Override
+    public String toString() {
+        return "Appointment{" +
+                "patient=" + patient +
+                ", doctor=" + doctor +
+                ", procedure=" + procedure +
+                ", date=" + date +
+                ", patientResponsibleParty=" + patientResponsibleParty +
+                ", scheduledAt=" + scheduledAt +
+                '}';
+    }
 }

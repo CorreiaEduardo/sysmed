@@ -46,4 +46,13 @@ public class Clinic extends IdentifiableEntity {
     public BigDecimal getProcedurePrice(Procedure p) {
         return procedurePriceTable.get(p);
     }
+
+    @Override
+    public String toString() {
+        return "Clinic{" +
+                "legalId='" + legalId + '\'' +
+                ", name='" + name + '\'' +
+                ", acceptsPrivateAppointments=" + acceptsPrivateAppointments +
+                '}';
+    }
 }

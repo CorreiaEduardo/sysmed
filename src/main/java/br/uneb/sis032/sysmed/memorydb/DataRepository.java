@@ -131,8 +131,11 @@ public class DataRepository {
         unimedCoveredProcedureTable.put(consultaDermatologia, BigDecimal.valueOf(80.0));
         HealthInsurance unimed = new HealthInsurance("Unimed", unimedCoveredProcedureTable, 0.1);
 
+        HealthInsurance planoABC = new HealthInsurance("Plano ABC", Collections.emptyMap(), 0.1);
+
         healthInsurances.add(bradesco);
         healthInsurances.add(unimed);
+        healthInsurances.add(planoABC);
 
         // Clinics
         Map<Procedure, BigDecimal> procedurePriceTable = new HashMap<>();
@@ -141,6 +144,7 @@ public class DataRepository {
         List<HealthInsurance> acceptedHealthInsurances = new ArrayList<>();
         acceptedHealthInsurances.add(bradesco);
         acceptedHealthInsurances.add(unimed);
+        acceptedHealthInsurances.add(planoABC);
 
         Clinic clinic = new Clinic("123123", "ABC Clinic", doctors, consultationRooms, procedurePriceTable, acceptedHealthInsurances, true);
         clinics.add(clinic);
@@ -168,12 +172,12 @@ public class DataRepository {
         List<TimeSlot> johnDoeTimeSlots = new ArrayList<>();
         johnDoeTimeSlots.add(new TimeSlot(LocalTime.of(7, 0), LocalTime.of(9, 0)));
         johnDoeTimeSlots.add(new TimeSlot(LocalTime.of(14, 0), LocalTime.of(16, 0)));
-        johnDoeSchedule.put(LocalDate.of(2023, 6, 12), johnDoeTimeSlots);
+        johnDoeSchedule.put(LocalDate.of(2023, 8, 12), johnDoeTimeSlots);
 
         Map<LocalDate, List<TimeSlot>> oliviaSmithSchedule = new HashMap<>();
         List<TimeSlot> oliviaSmithTimeSlots = new ArrayList<>();
         oliviaSmithTimeSlots.add(new TimeSlot(LocalTime.of(7, 0), LocalTime.of(16, 0)));
-        oliviaSmithSchedule.put(LocalDate.of(2023, 6, 28), oliviaSmithTimeSlots);
+        oliviaSmithSchedule.put(LocalDate.of(2023, 8, 28), oliviaSmithTimeSlots);
 
         Doctor johnDoe = new Doctor("Dr. John Doe", pediatria, room1, johnDoeSchedule);
         Doctor oliviaSmith = new Doctor("Dra. Olivia Smith", dermatologia, room2, oliviaSmithSchedule);

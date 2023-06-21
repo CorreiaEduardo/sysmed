@@ -15,4 +15,12 @@ public class ConsultationRoom extends IdentifiableEntity {
         this.roomNumber = roomNumber;
         this.clinic = clinic;
     }
+
+    @Override
+    public String toString() {
+        return "ConsultationRoom{" +
+                "roomNumber=" + roomNumber +
+                ", clinic=" + clinic +
+                '}';
+    }
 }
