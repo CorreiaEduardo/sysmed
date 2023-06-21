@@ -126,6 +126,12 @@ public class Application {
         do {
             final Procedure procedure = promptForProcedure(clinic, scanner);
 
+            if ((insurance == null || !insurance.covers(procedure)) && !clinic.getAcceptsPrivateAppointments()) {
+                System.out.println("A clinica não aceita agendamento particular.");
+                pauseConsole(scanner);
+                return null;
+            }
+
             if (insurance != null && !insurance.covers(procedure)) {
                 final boolean shouldContinue = promptToProceedWithoutCoverage(scanner);
                 if (!shouldContinue) {
@@ -216,7 +222,7 @@ public class Application {
             HealthInsurance hi = acceptedHealthInsurances.get(i);
             System.out.println((i + 1) + ". " + hi.getName());
         }
-        System.out.print("Selecione uma opção, ou digite 0 para atendimento particular: ");
+        System.out.print("Selecione uma opção" + (clinic.getAcceptsPrivateAppointments() ? ", ou digite 0 para atendimento particular: " : ": "));
         int selectedInsurance = nextInt(scanner) - 1;
 
         HealthInsurance insurance = null;
