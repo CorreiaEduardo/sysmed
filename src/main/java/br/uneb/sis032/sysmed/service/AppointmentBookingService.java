@@ -1,5 +1,6 @@
 package br.uneb.sis032.sysmed.service;
 
+import br.uneb.sis032.sysmed.domain.exception.PatientHasOtherAppointmentException;
 import br.uneb.sis032.sysmed.domain.exception.TimeSlotUnavailableException;
 import br.uneb.sis032.sysmed.domain.model.*;
 import br.uneb.sis032.sysmed.memorydb.DataRepository;
@@ -34,7 +35,7 @@ public class AppointmentBookingService {
                 .toList();
     }
 
-    public synchronized Payment book(Appointment appointment, HealthInsurance optionalHealthInsurance) throws TimeSlotUnavailableException {
+    public synchronized Payment book(Appointment appointment, HealthInsurance optionalHealthInsurance) throws TimeSlotUnavailableException, PatientHasOtherAppointmentException {
         return bookingFacade.book(appointment, optionalHealthInsurance);
     }
 

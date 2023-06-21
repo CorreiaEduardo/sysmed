@@ -1,5 +1,6 @@
 package br.uneb.sis032.sysmed;
 
+import br.uneb.sis032.sysmed.domain.exception.PatientHasOtherAppointmentException;
 import br.uneb.sis032.sysmed.domain.exception.TimeSlotUnavailableException;
 import br.uneb.sis032.sysmed.domain.model.*;
 import br.uneb.sis032.sysmed.domain.model.enums.GenderEnum;
@@ -108,7 +109,11 @@ public class Application {
             System.out.println("Agendamento realizado com sucesso.");
             pauseConsole(scanner);
         } catch (TimeSlotUnavailableException e) {
-            System.out.println("Desculpe, o atendimento não pode ser confirmado.");
+            System.out.println("Desculpe, o atendimento não pode ser confirmado porque o médico não possui disponibilidade.");
+            pauseConsole(scanner);
+        } catch (PatientHasOtherAppointmentException e) {
+            System.out.println("Desculpe, o atendimento não pode ser confirmado porque o paciente possui outros agendamentos para o mesmo horário.");
+            pauseConsole(scanner);
         }
     }
 
